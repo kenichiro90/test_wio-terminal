@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: local-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - /home/ubuntu/grafana-influxdb-main/influxdb:/var/lib/influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_ORG=WioTerminal
+      - DOCKER_INFLUXDB_INIT_BUCKET=WioTerminal
+      - DOCKER_INFLUXDB_INIT_USERNAME=ubuntu
+      - DOCKER_INFLUXDB_INIT_PASSWORD=WioTerminal
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-auth-token
+    user: "1000:1000"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/ubuntu/grafana-influxdb-main/grafana:/var/lib/grafana
+    depends_on:
+      - influxdb
+    user: "0:0"
+
+  telegraf:
+    image: telegraf
+    container_name: local-telegraf
+    ports:
+      - "8089:8089/udp"
+    volumes:
+      - /home/ubuntu/grafana-influxdb-main/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - influxdb
